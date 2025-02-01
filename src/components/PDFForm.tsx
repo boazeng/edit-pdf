@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 
 interface PDFFormProps {
   file: File;
@@ -30,8 +31,11 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Load a custom font that supports Hebrew
-      const fontBytes = await fetch('/fonts/arial.ttf').then(res => res.arrayBuffer());
+      // Register fontkit
+      pdfDoc.registerFontkit(fontkit);
+      
+      // Load David font
+      const fontBytes = await fetch('/fonts/david.ttf').then(res => res.arrayBuffer());
       const customFont = await pdfDoc.embedFont(fontBytes);
       
       const pages = pdfDoc.getPages();
