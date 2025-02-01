@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Image as ImageIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PDFFormProps {
   file: File;
@@ -15,6 +16,7 @@ interface PDFFormProps {
 export const PDFForm = ({ file, onReset }: PDFFormProps) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showTitle, setShowTitle] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     marginLeft: "",
@@ -58,7 +60,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const pages = pdfDoc.getPages();
       const startPageNum = parseInt(formData.startPage) || 1;
 
-      // אם יש תמונה, נטען אותה
       let pdfImage;
       if (image) {
         const imageBytes = await image.arrayBuffer();
@@ -74,9 +75,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
-        // אם יש תמונה, נצייר אותה
         if (pdfImage) {
-          const imgDims = pdfImage.scale(0.5); // התאמת גודל התמונה
+          const imgDims = pdfImage.scale(0.5);
           page.drawImage(pdfImage, {
             x: marginLeft,
             y: height - marginTop - imgDims.height,
@@ -85,11 +85,10 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           });
         }
 
-        // אם יש כותרת, נצייר אותה
-        if (formData.title) {
+        if (showTitle && formData.title) {
           page.drawText(formData.title, {
             x: marginLeft,
-            y: height - marginTop - (pdfImage ? 100 : 0), // אם יש תמונה, נזיז את הטקסט למטה
+            y: height - marginTop - (pdfImage ? 100 : 0),
             size: 12,
             font: font,
           });
@@ -98,7 +97,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const pageText = `-${startPageNum + index}-`;
         page.drawText(pageText, {
           x: marginLeft,
-          y: height - marginTop - (pdfImage ? 120 : 20), // התאמת מיקום מספר העמוד
+          y: height - marginTop - (pdfImage ? 120 : 20),
           size: 10,
           font: font,
         });
@@ -161,13 +160,23 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="title">כותרת (אופציונלי)</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            placeholder="הכנס את הכותרת הרצויה"
-          />
+          <div className="flex items-center space-x-2 mb-2">
+            <Checkbox
+              id="showTitle"
+              checked={showTitle}
+              onCheckedChange={(checked) => setShowTitle(checked as boolean)}
+            />
+            <Label htmlFor="showTitle">הצג כותרת</Label>
+          </div>
+          {showTitle && (
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              placeholder="הכנס את הכותרת הרצויה"
+              required={showTitle}
+            />
+          )}
         </div>
 
         <div>
