@@ -5,7 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PDFDocument, StandardFonts } from 'pdf-lib';
+import { PDFDocument } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 
 interface PDFFormProps {
   file: File;
@@ -31,7 +32,14 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      // Register fontkit with the PDF document
+      pdfDoc.registerFontkit(fontkit);
+      
+      // Load and embed the David font
+      const fontResponse = await fetch('/fonts/david.ttf');
+      const fontBytes = await fontResponse.arrayBuffer();
+      const davidFont = await pdfDoc.embedFont(fontBytes);
+      
       const pages = pdfDoc.getPages();
       const startPageNum = parseInt(formData.startPage) || 1;
       
@@ -40,12 +48,12 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
-        // Draw the title
+        // Draw the title with David font
         page.drawText(formData.title, {
           x: marginLeft,
           y: height - marginTop,
           size: 12,
-          font: font,
+          font: davidFont,
         });
 
         // Draw page numbers below the title in the new format "-X-"
@@ -54,7 +62,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop - 20, // 20 points below the title
           size: 10,
-          font: font,
+          font: davidFont,
         });
       });
       
