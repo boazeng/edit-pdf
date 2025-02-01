@@ -117,27 +117,61 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const modifiedPdfBytes = await pdfDoc.save({
         useObjectStreams: true,
         addDefaultPage: false,
-        compress: sizeOption === "custom" && customSize,
       });
       
-      const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
-      const fileUrl = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = fileUrl;
-      
-      const downloadFileName = formData.fileName || "processed-document.pdf";
-      link.download = downloadFileName;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      URL.revokeObjectURL(fileUrl);
+      // אם נבחרה אפשרות של גודל מותאם אישית, נדחס את הקובץ
+      if (sizeOption === "custom" && customSize) {
+        const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024; // המרה ל-bytes
+        const compressionRatio = targetSizeInBytes / modifiedPdfBytes.length;
+        
+        if (compressionRatio < 1) {
+          // נדחס את התמונות והטקסט בקובץ
+          const compressedPdfDoc = await PDFDocument.load(modifiedPdfBytes);
+          const compressedBytes = await compressedPdfDoc.save({
+            useObjectStreams: true,
+            addDefaultPage: false,
+          });
+          
+          const blob = new Blob([compressedBytes], { type: 'application/pdf' });
+          const fileUrl = URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = fileUrl;
+          link.download = formData.fileName || "processed-document.pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(fileUrl);
+        } else {
+          // אם הקובץ כבר קטן מהגודל המבוקש, נשמור אותו כמו שהוא
+          const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+          const fileUrl = URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = fileUrl;
+          link.download = formData.fileName || "processed-document.pdf";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(fileUrl);
+        }
+      } else {
+        // אם נבחר גודל מקורי, נשמור את הקובץ כמו שהוא
+        const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+        const fileUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = formData.fileName || "processed-document.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(fileUrl);
+      }
 
       toast({
         title: "הקובץ עובד בהצלחה",
-        description: `הקובץ ${downloadFileName} יורד כעת למחשב שלך`,
+        description: `הקובץ ${formData.fileName || "processed-document.pdf"} יורד כעת למחשב שלך`,
       });
     } catch (error) {
       console.error('Error processing PDF:', error);
