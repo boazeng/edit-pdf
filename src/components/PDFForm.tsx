@@ -30,21 +30,29 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Use the default Helvetica font
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      
       const pages = pdfDoc.getPages();
+      const totalPages = pages.length;
       
-      pages.forEach((page) => {
+      pages.forEach((page, index) => {
         const { height } = page.getSize();
-        
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
+        // Draw the title
         page.drawText(formData.title, {
           x: marginLeft,
           y: height - marginTop,
           size: 12,
+          font: font,
+        });
+
+        // Draw page numbers below the title
+        const pageText = `${index + 1}/${totalPages}`;
+        page.drawText(pageText, {
+          x: marginLeft,
+          y: height - marginTop - 20, // 20 points below the title
+          size: 10,
           font: font,
         });
       });
