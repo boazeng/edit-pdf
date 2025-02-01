@@ -82,7 +82,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
         if (pdfImage) {
-          const imgDims = pdfImage.scale(0.1);
+          const imgDims = pdfImage.scale(0.05); // הקטנת התמונה ל-5% מהגודל המקורי
           page.drawImage(pdfImage, {
             x: marginLeft,
             y: height - marginTop - imgDims.height,
@@ -95,7 +95,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           page.drawText(formData.title, {
             x: marginLeft,
             y: height - marginTop - (pdfImage ? 50 : 0),
-            size: 8,
+            size: 6, // הקטנת גודל הפונט ל-6
             font: font,
           });
         }
@@ -108,7 +108,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: Math.min(pageNumberFontSize, 10),
+          size: Math.min(pageNumberFontSize, 8), // הקטנת גודל הפונט המקסימלי ל-8
           font: font,
         });
       });
@@ -119,70 +119,35 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024;
         
         // נסיון ראשון של דחיסה
-        const initialCompressedBytes = await pdfDoc.save({
-          useObjectStreams: false,
+        const pdfBytes = await pdfDoc.save({
+          useObjectStreams: true,
           addDefaultPage: false,
-          objectsPerTick: 5
         });
         
-        console.log('Initial file size:', initialCompressedBytes.length / 1024 / 1024, 'MB');
+        console.log('File size:', pdfBytes.length / 1024 / 1024, 'MB');
         
-        if (initialCompressedBytes.length > targetSizeInBytes) {
-          console.log('Attempting additional compression...');
-          
-          // נסיון שני של דחיסה עם פרמטרים אגרסיביים יותר
-          const secondPassDoc = await PDFDocument.load(initialCompressedBytes);
-          const pages = secondPassDoc.getPages();
-          
-          // יצירת מסמך חדש עם דחיסה
-          const compressedDoc = await PDFDocument.create();
-          
-          // העתקת כל העמודים למסמך החדש
-          for (const page of pages) {
-            const { width, height } = page.getSize();
-            const [embeddedPage] = await compressedDoc.embedPages([page]);
-            const newPage = compressedDoc.addPage([width, height]);
-            newPage.drawPage(embeddedPage, {
-              x: 0,
-              y: 0,
-              width: width,
-              height: height
-            });
-          }
-          
-          const finalBytes = await compressedDoc.save({
-            useObjectStreams: false,
-            addDefaultPage: false,
-            objectsPerTick: 5
+        if (pdfBytes.length > targetSizeInBytes) {
+          toast({
+            title: "אזהרה",
+            description: "לא הצלחנו להגיע לגודל הקובץ המבוקש",
+            variant: "destructive",
           });
-          
-          console.log('Final file size:', finalBytes.length / 1024 / 1024, 'MB');
-          
-          const blob = new Blob([finalBytes], { type: 'application/pdf' });
-          const fileUrl = URL.createObjectURL(blob);
-          
-          const link = document.createElement('a');
-          link.href = fileUrl;
-          link.download = formData.fileName || "processed-document.pdf";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(fileUrl);
-        } else {
-          const blob = new Blob([initialCompressedBytes], { type: 'application/pdf' });
-          const fileUrl = URL.createObjectURL(blob);
-          
-          const link = document.createElement('a');
-          link.href = fileUrl;
-          link.download = formData.fileName || "processed-document.pdf";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(fileUrl);
         }
+        
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const fileUrl = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = formData.fileName || "processed-document.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(fileUrl);
       } else {
         const pdfBytes = await pdfDoc.save({
-          useObjectStreams: true
+          useObjectStreams: true,
+          addDefaultPage: false,
         });
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const fileUrl = URL.createObjectURL(blob);
