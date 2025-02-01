@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -26,18 +26,31 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     setIsProcessing(true);
 
     try {
-      // כאן יהיה הקוד לעיבוד ה-PDF
-      // לצורך הדגמה, נחכה שנייה אחת
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
+      // יצירת URL לקובץ שהועלה
+      const fileUrl = URL.createObjectURL(file);
+      
+      // יצירת קישור להורדה
+      const link = document.createElement('a');
+      link.href = fileUrl;
+      
       // הגדרת שם ברירת מחדל אם לא הוזן שם קובץ
       const downloadFileName = formData.fileName || "processed-document.pdf";
+      link.download = downloadFileName;
+      
+      // הפעלת ההורדה
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // שחרור המשאבים
+      URL.revokeObjectURL(fileUrl);
 
       toast({
         title: "הקובץ עובד בהצלחה",
         description: `הקובץ ${downloadFileName} יורד כעת למחשב שלך`,
       });
     } catch (error) {
+      console.error('Error downloading file:', error);
       toast({
         title: "שגיאה בעיבוד הקובץ",
         description: "אנא נסה שנית",
@@ -71,7 +84,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         </AlertDescription>
       </Alert>
 
-      <Alert variant="info">
+      <Alert>
         <Info className="h-4 w-4" />
         <AlertTitle>שים לב</AlertTitle>
         <AlertDescription className="mt-2">
