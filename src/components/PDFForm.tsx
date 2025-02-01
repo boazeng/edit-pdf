@@ -344,31 +344,36 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="pageNumberFontSize">גודל פונט מספר העמוד</Label>
-              <Input
-                id="pageNumberFontSize"
-                type="number"
-                min="6"
-                max="72"
-                value={formData.pageNumberFontSize}
-                onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
-                placeholder="לדוגמה: 16"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="pageNumberFontSize">גודל פונט מספר העמוד</Label>
+                <Input
+                  id="pageNumberFontSize"
+                  type="number"
+                  min="6"
+                  max="72"
+                  value={formData.pageNumberFontSize}
+                  onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
+                  placeholder="לדוגמה: 16"
+                  className="w-24"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="startPage">מספר עמוד התחלתי</Label>
+                <Input
+                  id="startPage"
+                  type="number"
+                  min="1"
+                  value={formData.startPage}
+                  onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
+                  placeholder="לדוגמה: 1"
+                  required
+                  className="w-24"
+                />
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="startPage">מספר עמוד התחלתי</Label>
-              <Input
-                id="startPage"
-                type="number"
-                min="1"
-                value={formData.startPage}
-                onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
-                placeholder="לדוגמה: 1"
-                required
-              />
-            </div>
           </div>
         </Card>
 
