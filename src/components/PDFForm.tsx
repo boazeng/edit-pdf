@@ -34,8 +34,20 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       // Register fontkit
       pdfDoc.registerFontkit(fontkit);
       
-      // Load David font
-      const fontBytes = await fetch('/fonts/david.ttf').then(res => res.arrayBuffer());
+      // Load David font with error handling
+      let fontBytes;
+      try {
+        const fontResponse = await fetch('/fonts/david.ttf');
+        if (!fontResponse.ok) {
+          throw new Error('Failed to load font file');
+        }
+        fontBytes = await fontResponse.arrayBuffer();
+        console.log('Font loaded successfully:', fontBytes.byteLength, 'bytes');
+      } catch (error) {
+        console.error('Error loading font:', error);
+        throw new Error('Failed to load font file');
+      }
+      
       const customFont = await pdfDoc.embedFont(fontBytes);
       
       const pages = pdfDoc.getPages();
