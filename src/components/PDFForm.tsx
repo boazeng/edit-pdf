@@ -7,6 +7,7 @@ import { ArrowLeft, Download, Folder, Image as ImageIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface PDFFormProps {
   file: File;
@@ -17,6 +18,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
+  const [sizeOption, setSizeOption] = useState("original");
+  const [customSize, setCustomSize] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     marginLeft: "0.5",
@@ -111,7 +114,12 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       });
       
       console.log('Saving PDF...');
-      const modifiedPdfBytes = await pdfDoc.save();
+      const modifiedPdfBytes = await pdfDoc.save({
+        useObjectStreams: sizeOption === "custom" && customSize ? false : true,
+        objectsPerStream: sizeOption === "custom" && customSize ? 
+          Math.floor(1024 * 1024 * parseFloat(customSize)) : undefined
+      });
+      
       const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
       const fileUrl = URL.createObjectURL(blob);
       
@@ -166,6 +174,39 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       </Alert>
 
       <div className="space-y-4">
+        <div>
+          <Label>גודל קובץ</Label>
+          <RadioGroup
+            value={sizeOption}
+            onValueChange={setSizeOption}
+            className="flex flex-col space-y-2 mt-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="original" id="original" />
+              <Label htmlFor="original">גודל מקורי</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="custom" id="custom" />
+              <Label htmlFor="custom">גודל מותאם אישית</Label>
+            </div>
+          </RadioGroup>
+          {sizeOption === "custom" && (
+            <div className="mt-2">
+              <Label htmlFor="customSize">גודל בMB</Label>
+              <Input
+                id="customSize"
+                type="number"
+                step="0.1"
+                min="0.1"
+                value={customSize}
+                onChange={(e) => setCustomSize(e.target.value)}
+                placeholder="לדוגמה: 5"
+                required={sizeOption === "custom"}
+              />
+            </div>
+          )}
+        </div>
+
         <div>
           <div className="flex items-center space-x-2 mb-2">
             <Checkbox
