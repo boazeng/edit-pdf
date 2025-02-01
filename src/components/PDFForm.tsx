@@ -17,6 +17,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     title: "",
     marginLeft: "",
     marginBottom: "",
+    fileName: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,9 +29,12 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       // לצורך הדגמה, נחכה שנייה אחת
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // הגדרת שם ברירת מחדל אם לא הוזן שם קובץ
+      const downloadFileName = formData.fileName || "processed-document.pdf";
+
       toast({
         title: "הקובץ עובד בהצלחה",
-        description: "הקובץ המעובד יורד כעת למחשב שלך",
+        description: `הקובץ ${downloadFileName} יורד כעת למחשב שלך`,
       });
     } catch (error) {
       toast({
@@ -85,6 +89,16 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               required
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="fileName">שם הקובץ</Label>
+          <Input
+            id="fileName"
+            value={formData.fileName}
+            onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
+            placeholder="שם הקובץ (לדוגמה: document.pdf)"
+          />
         </div>
       </div>
 
