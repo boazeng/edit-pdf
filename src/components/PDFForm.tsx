@@ -8,6 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 interface PDFFormProps {
   file: File;
@@ -199,13 +201,13 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         </AlertDescription>
       </Alert>
 
-      <div className="space-y-4">
-        <div>
-          <Label>גודל קובץ</Label>
+      <div className="space-y-6">
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">הגדרות גודל קובץ</h3>
           <RadioGroup
             value={sizeOption}
             onValueChange={setSizeOption}
-            className="flex flex-col space-y-2 mt-2"
+            className="flex flex-col space-y-2"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="original" id="original" />
@@ -231,144 +233,157 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               />
             </div>
           )}
-        </div>
+        </Card>
 
-        <div>
-          <div className="flex items-center space-x-2 mb-2">
-            <Checkbox
-              id="showTitle"
-              checked={showTitle}
-              onCheckedChange={(checked) => setShowTitle(checked as boolean)}
-            />
-            <Label htmlFor="showTitle">הצג כותרת</Label>
-          </div>
-          {showTitle && (
-            <Input
-              id="title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="הכנס את הכותרת הרצויה"
-              required={showTitle}
-            />
-          )}
-        </div>
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">כותרת ותמונה</h3>
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center space-x-2 mb-2">
+                <Checkbox
+                  id="showTitle"
+                  checked={showTitle}
+                  onCheckedChange={(checked) => setShowTitle(checked as boolean)}
+                />
+                <Label htmlFor="showTitle">הצג כותרת</Label>
+              </div>
+              {showTitle && (
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  placeholder="הכנס את הכותרת הרצויה"
+                  required={showTitle}
+                />
+              )}
+            </div>
 
-        <div>
-          <Label htmlFor="image">תמונה (אופציונלי)</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id="image"
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-            />
-            {image && (
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => setImage(null)}
-              >
-                ✕
-              </Button>
-            )}
+            <div>
+              <Label htmlFor="image">תמונה (אופציונלי)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                />
+                {image && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setImage(null)}
+                  >
+                    ✕
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="marginLeft">מרחק משמאל (ס"מ)</Label>
+                <Input
+                  id="marginLeft"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={formData.marginLeft}
+                  onChange={(e) => setFormData({ ...formData, marginLeft: e.target.value })}
+                  placeholder="לדוגמה: 0.5"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="marginBottom">מרחק מלמעלה (ס"מ)</Label>
+                <Input
+                  id="marginBottom"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={formData.marginBottom}
+                  onChange={(e) => setFormData({ ...formData, marginBottom: e.target.value })}
+                  placeholder="לדוגמה: 1"
+                  required
+                />
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4">
+        </Card>
+
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">הגדרות מספור עמודים</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="pageNumberMarginLeft">מרחק מספר עמוד משמאל (ס"מ)</Label>
+                <Input
+                  id="pageNumberMarginLeft"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={formData.pageNumberMarginLeft}
+                  onChange={(e) => setFormData({ ...formData, pageNumberMarginLeft: e.target.value })}
+                  placeholder="לדוגמה: 2"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="pageNumberMarginTop">מרחק מספר עמוד מלמעלה (ס"מ)</Label>
+                <Input
+                  id="pageNumberMarginTop"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={formData.pageNumberMarginTop}
+                  onChange={(e) => setFormData({ ...formData, pageNumberMarginTop: e.target.value })}
+                  placeholder="לדוגמה: 1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="pageNumberFontSize">גודל פונט מספר העמוד</Label>
+              <Input
+                id="pageNumberFontSize"
+                type="number"
+                min="6"
+                max="72"
+                value={formData.pageNumberFontSize}
+                onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
+                placeholder="לדוגמה: 16"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="startPage">מספר עמוד התחלתי</Label>
+              <Input
+                id="startPage"
+                type="number"
+                min="1"
+                value={formData.startPage}
+                onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
+                placeholder="לדוגמה: 1"
+                required
+              />
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-4">
+          <h3 className="text-lg font-semibold mb-4">שם הקובץ</h3>
           <div>
-            <Label htmlFor="marginLeft">מרחק משמאל (ס"מ)</Label>
+            <Label htmlFor="fileName">שם הקובץ</Label>
             <Input
-              id="marginLeft"
-              type="number"
-              step="0.1"
-              min="0"
-              value={formData.marginLeft}
-              onChange={(e) => setFormData({ ...formData, marginLeft: e.target.value })}
-              placeholder="לדוגמה: 0.5"
-              required
+              id="fileName"
+              value={formData.fileName}
+              onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
+              placeholder="שם הקובץ (לדוגמה: document.pdf)"
             />
           </div>
-          
-          <div>
-            <Label htmlFor="marginBottom">מרחק מלמעלה (ס"מ)</Label>
-            <Input
-              id="marginBottom"
-              type="number"
-              step="0.1"
-              min="0"
-              value={formData.marginBottom}
-              onChange={(e) => setFormData({ ...formData, marginBottom: e.target.value })}
-              placeholder="לדוגמה: 1"
-              required
-            />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="pageNumberMarginLeft">מרחק מספר עמוד משמאל (ס"מ)</Label>
-            <Input
-              id="pageNumberMarginLeft"
-              type="number"
-              step="0.1"
-              min="0"
-              value={formData.pageNumberMarginLeft}
-              onChange={(e) => setFormData({ ...formData, pageNumberMarginLeft: e.target.value })}
-              placeholder="לדוגמה: 2"
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="pageNumberMarginTop">מרחק מספר עמוד מלמעלה (ס"מ)</Label>
-            <Input
-              id="pageNumberMarginTop"
-              type="number"
-              step="0.1"
-              min="0"
-              value={formData.pageNumberMarginTop}
-              onChange={(e) => setFormData({ ...formData, pageNumberMarginTop: e.target.value })}
-              placeholder="לדוגמה: 1"
-            />
-          </div>
-        </div>
-
-        <div>
-          <Label htmlFor="pageNumberFontSize">גודל פונט מספר העמוד</Label>
-          <Input
-            id="pageNumberFontSize"
-            type="number"
-            min="6"
-            max="72"
-            value={formData.pageNumberFontSize}
-            onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
-            placeholder="לדוגמה: 16"
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="startPage">מספר עמוד התחלתי</Label>
-          <Input
-            id="startPage"
-            type="number"
-            min="1"
-            value={formData.startPage}
-            onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
-            placeholder="לדוגמה: 1"
-            required
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="fileName">שם הקובץ</Label>
-          <Input
-            id="fileName"
-            value={formData.fileName}
-            onChange={(e) => setFormData({ ...formData, fileName: e.target.value })}
-            placeholder="שם הקובץ (לדוגמה: document.pdf)"
-          />
-        </div>
+        </Card>
       </div>
 
       <div className="flex justify-between items-center pt-4">
