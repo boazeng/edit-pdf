@@ -27,56 +27,42 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     setIsProcessing(true);
 
     try {
-      // קריאת הקובץ כ-ArrayBuffer
       const fileBuffer = await file.arrayBuffer();
-      
-      // יצירת מסמך PDF חדש מהקובץ הקיים
       const pdfDoc = await PDFDocument.load(fileBuffer);
-      
-      // הוספת הגופן העברי
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      
-      // עיבוד כל העמודים
       const pages = pdfDoc.getPages();
       
       pages.forEach((page) => {
-        const { width, height } = page.getSize();
+        const { height } = page.getSize();
         
         // המרת המרווחים לנקודות (1 ס"מ = ~28.35 נקודות)
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
-        const marginBottom = parseFloat(formData.marginBottom) * 28.35;
+        const marginTop = parseFloat(formData.marginBottom) * 28.35; // שינוי השם ל-marginTop
         
-        // הוספת הטקסט
+        // הוספת הטקסט - המיקום נמדד מהפינה השמאלית העליונה
         page.drawText(formData.title, {
           x: marginLeft,
-          y: marginBottom,
+          y: height - marginTop, // חישוב המיקום מלמעלה
           size: 12,
           font,
           color: rgb(0, 0, 0),
         });
       });
       
-      // שמירת המסמך החדש
       const modifiedPdfBytes = await pdfDoc.save();
-      
-      // יצירת Blob מהקובץ המעובד
       const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
       const fileUrl = URL.createObjectURL(blob);
       
-      // יצירת קישור להורדה
       const link = document.createElement('a');
       link.href = fileUrl;
       
-      // הגדרת שם ברירת מחדל אם לא הוזן שם קובץ
       const downloadFileName = formData.fileName || "processed-document.pdf";
       link.download = downloadFileName;
       
-      // הפעלת ההורדה
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       
-      // שחרור המשאבים
       URL.revokeObjectURL(fileUrl);
 
       toast({
@@ -95,7 +81,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     }
   };
 
-  // קביעת נתיב ברירת המחדל בהתאם למערכת ההפעלה
   const getDefaultDownloadPath = () => {
     const isWindows = navigator.platform.includes('Win');
     const isMac = navigator.platform.includes('Mac');
@@ -146,7 +131,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="marginLeft">מרחק מימין (ס"מ)</Label>
+            <Label htmlFor="marginLeft">מרחק משמאל (ס"מ)</Label>
             <Input
               id="marginLeft"
               type="number"
@@ -160,7 +145,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           </div>
           
           <div>
-            <Label htmlFor="marginBottom">מרחק מלמטה (ס"מ)</Label>
+            <Label htmlFor="marginBottom">מרחק מלמעלה (ס"מ)</Label>
             <Input
               id="marginBottom"
               type="number"
