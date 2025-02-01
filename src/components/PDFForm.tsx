@@ -20,7 +20,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     marginLeft: "",
     marginBottom: "",
     fileName: "",
-    startPage: "1", // New field for starting page number
+    startPage: "1",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,7 +33,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const pages = pdfDoc.getPages();
-      const totalPages = pages.length;
       const startPageNum = parseInt(formData.startPage) || 1;
       
       pages.forEach((page, index) => {
@@ -49,8 +48,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           font: font,
         });
 
-        // Draw page numbers below the title, starting from the specified page number
-        const pageText = `${startPageNum + index}/${startPageNum + totalPages - 1}`;
+        // Draw page numbers below the title in the new format "-X-"
+        const pageText = `-${startPageNum + index}-`;
         page.drawText(pageText, {
           x: marginLeft,
           y: height - marginTop - 20, // 20 points below the title
