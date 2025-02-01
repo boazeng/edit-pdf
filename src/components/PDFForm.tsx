@@ -116,8 +116,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       console.log('Saving PDF...');
       const modifiedPdfBytes = await pdfDoc.save({
         useObjectStreams: sizeOption === "custom" && customSize ? false : true,
-        objectsPerStream: sizeOption === "custom" && customSize ? 
-          Math.floor(1024 * 1024 * parseFloat(customSize)) : undefined
       });
       
       const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
