@@ -202,7 +202,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       </Alert>
 
       <div className="space-y-6">
-        <Card className="p-4">
+        <Card className="p-4 border-2 shadow-md">
           <h3 className="text-lg font-semibold mb-4">הגדרות גודל קובץ</h3>
           <RadioGroup
             value={sizeOption}
@@ -235,7 +235,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           )}
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 border-2 shadow-md">
           <h3 className="text-lg font-semibold mb-4">כותרת ותמונה</h3>
           <div className="space-y-4">
             <div>
@@ -313,7 +313,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 border-2 shadow-md">
           <h3 className="text-lg font-semibold mb-4">הגדרות מספור עמודים</h3>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -372,7 +372,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 border-2 shadow-md">
           <h3 className="text-lg font-semibold mb-4">שם הקובץ</h3>
           <div>
             <Label htmlFor="fileName">שם הקובץ</Label>
