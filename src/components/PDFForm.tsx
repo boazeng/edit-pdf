@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Download, Folder, Info } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, Download, Folder } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 
 interface PDFFormProps {
@@ -100,20 +100,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         <Folder className="h-4 w-4" />
         <AlertDescription>
           הקובץ יישמר בתיקיית ההורדות שלך: {getDefaultDownloadPath()}
-        </AlertDescription>
-      </Alert>
-
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>שים לב</AlertTitle>
-        <AlertDescription className="mt-2">
-          מטעמי אבטחה, הדפדפן יוריד את הקובץ לתיקיית ברירת המחדל להורדות.
-          אם ברצונך לשנות את תיקיית ברירת המחדל:
-          <ul className="list-disc list-inside mt-2 space-y-1">
-            <li>בכרום: פתח הגדרות {'>'} מתקדם {'>'} הורדות</li>
-            <li>בפיירפוקס: פתח הגדרות {'>'} כללי {'>'} הורדות</li>
-            <li>בספארי: פתח העדפות {'>'} כללי</li>
-          </ul>
         </AlertDescription>
       </Alert>
 
