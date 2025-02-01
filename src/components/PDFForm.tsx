@@ -20,6 +20,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     marginLeft: "",
     marginBottom: "",
     fileName: "",
+    startPage: "1", // New field for starting page number
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +34,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const pages = pdfDoc.getPages();
       const totalPages = pages.length;
+      const startPageNum = parseInt(formData.startPage) || 1;
       
       pages.forEach((page, index) => {
         const { height } = page.getSize();
@@ -47,8 +49,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           font: font,
         });
 
-        // Draw page numbers below the title
-        const pageText = `${index + 1}/${totalPages}`;
+        // Draw page numbers below the title, starting from the specified page number
+        const pageText = `${startPageNum + index}/${startPageNum + totalPages - 1}`;
         page.drawText(pageText, {
           x: marginLeft,
           y: height - marginTop - 20, // 20 points below the title
@@ -151,6 +153,19 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               required
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="startPage">מספר עמוד התחלתי</Label>
+          <Input
+            id="startPage"
+            type="number"
+            min="1"
+            value={formData.startPage}
+            onChange={(e) => setFormData({ ...formData, startPage: e.target.value })}
+            placeholder="לדוגמה: 1"
+            required
+          />
         </div>
 
         <div>
