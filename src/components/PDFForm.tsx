@@ -82,8 +82,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
         if (pdfImage) {
-          // הקטנת גודל התמונה לחצי מהגודל המקורי לדחיסה טובה יותר
-          const imgDims = pdfImage.scale(0.25);
+          // הקטנת גודל התמונה ל-10% מהגודל המקורי
+          const imgDims = pdfImage.scale(0.1);
           page.drawImage(pdfImage, {
             x: marginLeft,
             y: height - marginTop - imgDims.height,
@@ -96,7 +96,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           page.drawText(formData.title, {
             x: marginLeft,
             y: height - marginTop - (pdfImage ? 50 : 0),
-            size: 10, // הקטנת גודל הפונט
+            size: 8, // הקטנת גודל הפונט עוד יותר
             font: font,
           });
         }
@@ -109,32 +109,33 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: Math.min(pageNumberFontSize, 12), // הגבלת גודל הפונט
+          size: Math.min(pageNumberFontSize, 10), // הגבלת גודל הפונט
           font: font,
         });
       });
       
       console.log('Saving PDF...');
       
-      // אם נבחרה אפשרות של גודל מותאם אישית, נדחס את הקובץ
       if (sizeOption === "custom" && customSize) {
-        const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024; // המרה ל-bytes
+        const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024;
         
         // שמירה עם דחיסה מקסימלית
-        const modifiedPdfBytes = await pdfDoc.save({
-          useObjectStreams: false, // ביטול object streams לדחיסה טובה יותר
+        const compressedPdfBytes = await pdfDoc.save({
+          useObjectStreams: false,
           addDefaultPage: false,
+          objectsPerTick: 10, // הגבלת מספר האובייקטים לעיבוד בכל פעם
         });
         
-        if (modifiedPdfBytes.length > targetSizeInBytes) {
-          // אם הקובץ עדיין גדול מדי, ננסה לדחוס אותו עוד יותר
-          const compressedPdfDoc = await PDFDocument.load(modifiedPdfBytes);
-          const compressedBytes = await compressedPdfDoc.save({
+        if (compressedPdfBytes.length > targetSizeInBytes) {
+          // אם הקובץ עדיין גדול מדי, ננסה דחיסה נוספת
+          const compressedPdfDoc = await PDFDocument.load(compressedPdfBytes);
+          const finalBytes = await compressedPdfDoc.save({
             useObjectStreams: false,
             addDefaultPage: false,
+            objectsPerTick: 10,
           });
           
-          const blob = new Blob([compressedBytes], { type: 'application/pdf' });
+          const blob = new Blob([finalBytes], { type: 'application/pdf' });
           const fileUrl = URL.createObjectURL(blob);
           
           const link = document.createElement('a');
@@ -145,7 +146,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           document.body.removeChild(link);
           URL.revokeObjectURL(fileUrl);
         } else {
-          const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+          const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
           const fileUrl = URL.createObjectURL(blob);
           
           const link = document.createElement('a');
@@ -157,13 +158,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           URL.revokeObjectURL(fileUrl);
         }
       } else {
-        // אם נבחר גודל מקורי, נשמור את הקובץ כמו שהוא
-        const modifiedPdfBytes = await pdfDoc.save({
-          useObjectStreams: true,
-          addDefaultPage: false,
-        });
-        
-        const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const fileUrl = URL.createObjectURL(blob);
         
         const link = document.createElement('a');
@@ -399,3 +395,4 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     </form>
   );
 };
+
