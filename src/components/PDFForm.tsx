@@ -29,16 +29,23 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     setIsProcessing(true);
 
     try {
+      console.log('Starting PDF processing...');
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Register fontkit with the PDF document
+      console.log('Loading font...');
       pdfDoc.registerFontkit(fontkit);
       
-      // Load and embed the David font
       const fontResponse = await fetch('/fonts/david.ttf');
+      if (!fontResponse.ok) {
+        throw new Error(`Failed to load font: ${fontResponse.statusText}`);
+      }
+      
       const fontBytes = await fontResponse.arrayBuffer();
+      console.log('Font bytes loaded, length:', fontBytes.byteLength);
+      
       const davidFont = await pdfDoc.embedFont(fontBytes);
+      console.log('Font embedded successfully');
       
       const pages = pdfDoc.getPages();
       const startPageNum = parseInt(formData.startPage) || 1;
@@ -48,7 +55,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
-        // Draw the title with David font
         page.drawText(formData.title, {
           x: marginLeft,
           y: height - marginTop,
@@ -56,16 +62,16 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           font: davidFont,
         });
 
-        // Draw page numbers below the title in the new format "-X-"
         const pageText = `-${startPageNum + index}-`;
         page.drawText(pageText, {
           x: marginLeft,
-          y: height - marginTop - 20, // 20 points below the title
+          y: height - marginTop - 20,
           size: 10,
           font: davidFont,
         });
       });
       
+      console.log('Saving PDF...');
       const modifiedPdfBytes = await pdfDoc.save();
       const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
       const fileUrl = URL.createObjectURL(blob);
@@ -90,7 +96,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       console.error('Error processing PDF:', error);
       toast({
         title: "שגיאה בעיבוד הקובץ",
-        description: "אנא נסה שנית",
+        description: error instanceof Error ? error.message : "אנא נסה שנית",
         variant: "destructive",
       });
     } finally {
