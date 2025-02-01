@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Download, Folder } from "lucide-react";
+import { ArrowLeft, Download, Folder, Image as ImageIcon } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 
@@ -22,6 +22,26 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     fileName: "",
     startPage: "1",
   });
+  const [image, setImage] = useState<File | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "שגיאה",
+          description: "אנא העלה קובץ תמונה בלבד",
+          variant: "destructive",
+        });
+        return;
+      }
+      setImage(file);
+      toast({
+        title: "התמונה הועלתה בהצלחה",
+        description: file.name,
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,29 +52,53 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // שימוש בפונט סטנדרטי במקום Aharoni
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       
       console.log('Processing pages...');
       const pages = pdfDoc.getPages();
       const startPageNum = parseInt(formData.startPage) || 1;
+
+      // אם יש תמונה, נטען אותה
+      let pdfImage;
+      if (image) {
+        const imageBytes = await image.arrayBuffer();
+        if (image.type.includes('png')) {
+          pdfImage = await pdfDoc.embedPng(imageBytes);
+        } else if (image.type.includes('jpeg') || image.type.includes('jpg')) {
+          pdfImage = await pdfDoc.embedJpg(imageBytes);
+        }
+      }
       
       pages.forEach((page, index) => {
-        const { height } = page.getSize();
+        const { height, width } = page.getSize();
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
-        page.drawText(formData.title, {
-          x: marginLeft,
-          y: height - marginTop,
-          size: 12,
-          font: font,
-        });
+        // אם יש תמונה, נצייר אותה
+        if (pdfImage) {
+          const imgDims = pdfImage.scale(0.5); // התאמת גודל התמונה
+          page.drawImage(pdfImage, {
+            x: marginLeft,
+            y: height - marginTop - imgDims.height,
+            width: imgDims.width,
+            height: imgDims.height,
+          });
+        }
+
+        // אם יש כותרת, נצייר אותה
+        if (formData.title) {
+          page.drawText(formData.title, {
+            x: marginLeft,
+            y: height - marginTop - (pdfImage ? 100 : 0), // אם יש תמונה, נזיז את הטקסט למטה
+            size: 12,
+            font: font,
+          });
+        }
 
         const pageText = `-${startPageNum + index}-`;
         page.drawText(pageText, {
           x: marginLeft,
-          y: height - marginTop - 20,
+          y: height - marginTop - (pdfImage ? 120 : 20), // התאמת מיקום מספר העמוד
           size: 10,
           font: font,
         });
@@ -117,14 +161,36 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="title">כותרת</Label>
+          <Label htmlFor="title">כותרת (אופציונלי)</Label>
           <Input
             id="title"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             placeholder="הכנס את הכותרת הרצויה"
-            required
           />
+        </div>
+
+        <div>
+          <Label htmlFor="image">תמונה (אופציונלי)</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              id="image"
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+            />
+            {image && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => setImage(null)}
+              >
+                ✕
+              </Button>
+            )}
+          </div>
         </div>
         
         <div className="grid grid-cols-2 gap-4">
