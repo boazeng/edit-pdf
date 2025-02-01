@@ -23,6 +23,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     marginBottom: "",
     fileName: "",
     startPage: "1",
+    pageNumberMarginLeft: "",
+    pageNumberMarginTop: "",
   });
   const [image, setImage] = useState<File | null>(null);
 
@@ -95,9 +97,12 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         }
 
         const pageText = `-${startPageNum + index}-`;
+        const pageNumberMarginLeft = parseFloat(formData.pageNumberMarginLeft) * 28.35 || marginLeft;
+        const pageNumberMarginTop = parseFloat(formData.pageNumberMarginTop) * 28.35 || marginTop;
+        
         page.drawText(pageText, {
-          x: marginLeft,
-          y: height - marginTop - (pdfImage ? 120 : 20),
+          x: pageNumberMarginLeft,
+          y: height - pageNumberMarginTop,
           size: 10,
           font: font,
         });
@@ -228,6 +233,34 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               onChange={(e) => setFormData({ ...formData, marginBottom: e.target.value })}
               placeholder="לדוגמה: 1.5"
               required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="pageNumberMarginLeft">מרחק מספר עמוד משמאל (ס"מ)</Label>
+            <Input
+              id="pageNumberMarginLeft"
+              type="number"
+              step="0.1"
+              min="0"
+              value={formData.pageNumberMarginLeft}
+              onChange={(e) => setFormData({ ...formData, pageNumberMarginLeft: e.target.value })}
+              placeholder="לדוגמה: 2.5"
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="pageNumberMarginTop">מרחק מספר עמוד מלמעלה (ס"מ)</Label>
+            <Input
+              id="pageNumberMarginTop"
+              type="number"
+              step="0.1"
+              min="0"
+              value={formData.pageNumberMarginTop}
+              onChange={(e) => setFormData({ ...formData, pageNumberMarginTop: e.target.value })}
+              placeholder="לדוגמה: 1.5"
             />
           </div>
         </div>
