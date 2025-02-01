@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Download, Folder, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Download, Folder } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,7 +82,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
         if (pdfImage) {
-          const imgDims = pdfImage.scale(0.5);
+          // הקטנת גודל התמונה לחצי מהגודל המקורי לדחיסה טובה יותר
+          const imgDims = pdfImage.scale(0.25);
           page.drawImage(pdfImage, {
             x: marginLeft,
             y: height - marginTop - imgDims.height,
@@ -94,8 +95,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         if (showTitle && formData.title) {
           page.drawText(formData.title, {
             x: marginLeft,
-            y: height - marginTop - (pdfImage ? 100 : 0),
-            size: 12,
+            y: height - marginTop - (pdfImage ? 50 : 0),
+            size: 10, // הקטנת גודל הפונט
             font: font,
           });
         }
@@ -108,27 +109,28 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: pageNumberFontSize,
+          size: Math.min(pageNumberFontSize, 12), // הגבלת גודל הפונט
           font: font,
         });
       });
       
       console.log('Saving PDF...');
-      const modifiedPdfBytes = await pdfDoc.save({
-        useObjectStreams: true,
-        addDefaultPage: false,
-      });
       
       // אם נבחרה אפשרות של גודל מותאם אישית, נדחס את הקובץ
       if (sizeOption === "custom" && customSize) {
         const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024; // המרה ל-bytes
-        const compressionRatio = targetSizeInBytes / modifiedPdfBytes.length;
         
-        if (compressionRatio < 1) {
-          // נדחס את התמונות והטקסט בקובץ
+        // שמירה עם דחיסה מקסימלית
+        const modifiedPdfBytes = await pdfDoc.save({
+          useObjectStreams: false, // ביטול object streams לדחיסה טובה יותר
+          addDefaultPage: false,
+        });
+        
+        if (modifiedPdfBytes.length > targetSizeInBytes) {
+          // אם הקובץ עדיין גדול מדי, ננסה לדחוס אותו עוד יותר
           const compressedPdfDoc = await PDFDocument.load(modifiedPdfBytes);
           const compressedBytes = await compressedPdfDoc.save({
-            useObjectStreams: true,
+            useObjectStreams: false,
             addDefaultPage: false,
           });
           
@@ -143,7 +145,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           document.body.removeChild(link);
           URL.revokeObjectURL(fileUrl);
         } else {
-          // אם הקובץ כבר קטן מהגודל המבוקש, נשמור אותו כמו שהוא
           const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
           const fileUrl = URL.createObjectURL(blob);
           
@@ -157,6 +158,11 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         }
       } else {
         // אם נבחר גודל מקורי, נשמור את הקובץ כמו שהוא
+        const modifiedPdfBytes = await pdfDoc.save({
+          useObjectStreams: true,
+          addDefaultPage: false,
+        });
+        
         const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
         const fileUrl = URL.createObjectURL(blob);
         
