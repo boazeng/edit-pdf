@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Folder } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PDFFormProps {
   file: File;
@@ -47,8 +48,29 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     }
   };
 
+  // קביעת נתיב ברירת המחדל בהתאם למערכת ההפעלה
+  const getDefaultDownloadPath = () => {
+    const isWindows = navigator.platform.includes('Win');
+    const isMac = navigator.platform.includes('Mac');
+    
+    if (isWindows) {
+      return 'C:\\Users\\[Username]\\Downloads';
+    } else if (isMac) {
+      return '/Users/[Username]/Downloads';
+    } else {
+      return '~/Downloads';
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <Alert>
+        <Folder className="h-4 w-4" />
+        <AlertDescription>
+          הקובץ יישמר בתיקיית ההורדות שלך: {getDefaultDownloadPath()}
+        </AlertDescription>
+      </Alert>
+
       <div className="space-y-4">
         <div>
           <Label htmlFor="title">כותרת</Label>
