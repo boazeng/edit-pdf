@@ -36,7 +36,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       console.log('Loading font...');
       pdfDoc.registerFontkit(fontkit);
       
-      const fontResponse = await fetch('/fonts/arial.ttf');
+      const fontResponse = await fetch('/fonts/aharoni.ttf');
       if (!fontResponse.ok) {
         throw new Error(`Failed to load font: ${fontResponse.statusText}`);
       }
@@ -44,7 +44,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fontBytes = await fontResponse.arrayBuffer();
       console.log('Font bytes loaded, length:', fontBytes.byteLength);
       
-      const arialFont = await pdfDoc.embedFont(fontBytes);
+      const aharoniFont = await pdfDoc.embedFont(fontBytes);
       console.log('Font embedded successfully');
       
       const pages = pdfDoc.getPages();
@@ -59,7 +59,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop,
           size: 12,
-          font: arialFont,
+          font: aharoniFont,
         });
 
         const pageText = `-${startPageNum + index}-`;
@@ -67,7 +67,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop - 20,
           size: 10,
-          font: arialFont,
+          font: aharoniFont,
         });
       });
       
