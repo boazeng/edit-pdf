@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { PDFDocument, rgb } from 'pdf-lib';
 
 interface PDFFormProps {
   file: File;
@@ -29,22 +29,24 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     try {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      // Load a custom font that supports Hebrew
+      const fontBytes = await fetch('/fonts/arial.ttf').then(res => res.arrayBuffer());
+      const customFont = await pdfDoc.embedFont(fontBytes);
+      
       const pages = pdfDoc.getPages();
       
       pages.forEach((page) => {
         const { height } = page.getSize();
         
-        // המרת המרווחים לנקודות (1 ס"מ = ~28.35 נקודות)
         const marginLeft = parseFloat(formData.marginLeft) * 28.35;
-        const marginTop = parseFloat(formData.marginBottom) * 28.35; // שינוי השם ל-marginTop
+        const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
-        // הוספת הטקסט - המיקום נמדד מהפינה השמאלית העליונה
         page.drawText(formData.title, {
           x: marginLeft,
-          y: height - marginTop, // חישוב המיקום מלמעלה
+          y: height - marginTop,
           size: 12,
-          font,
+          font: customFont,
           color: rgb(0, 0, 0),
         });
       });
