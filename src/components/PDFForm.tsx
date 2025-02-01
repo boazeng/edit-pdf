@@ -15,6 +15,7 @@ interface PDFFormProps {
 }
 
 export const PDFForm = ({ file, onReset }: PDFFormProps) => {
+
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
@@ -116,24 +117,51 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       
       console.log('Saving PDF...');
       
+      console.log('Saving PDF...');
+      
       if (sizeOption === "custom" && customSize) {
         const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024;
         
-        // שמירה עם דחיסה מקסימלית
-        const compressedPdfBytes = await pdfDoc.save({
+        // נסיון ראשון של דחיסה
+        const initialCompressedBytes = await pdfDoc.save({
           useObjectStreams: false,
           addDefaultPage: false,
-          objectsPerTick: 10, // הגבלת מספר האובייקטים לעיבוד בכל פעם
+          objectsPerTick: 5,
+          compress: true
         });
         
-        if (compressedPdfBytes.length > targetSizeInBytes) {
-          // אם הקובץ עדיין גדול מדי, ננסה דחיסה נוספת
-          const compressedPdfDoc = await PDFDocument.load(compressedPdfBytes);
-          const finalBytes = await compressedPdfDoc.save({
+        console.log('Initial file size:', initialCompressedBytes.length / 1024 / 1024, 'MB');
+        
+        if (initialCompressedBytes.length > targetSizeInBytes) {
+          console.log('Attempting additional compression...');
+          
+          // נסיון שני של דחיסה עם פרמטרים אגרסיביים יותר
+          const secondPassDoc = await PDFDocument.load(initialCompressedBytes);
+          
+          // מעבר על כל העמודים ודחיסת תמונות נוספת
+          const pages = secondPassDoc.getPages();
+          for (const page of pages) {
+            const { width, height } = page.getSize();
+            // דחיסת העמוד על ידי יצירת עמוד חדש בגודל זהה
+            const newPage = secondPassDoc.addPage([width, height]);
+            await newPage.drawPage(page, {
+              x: 0,
+              y: 0,
+              width: width,
+              height: height,
+              compress: true
+            });
+            secondPassDoc.removePage(secondPassDoc.getPageIndex(page));
+          }
+          
+          const finalBytes = await secondPassDoc.save({
             useObjectStreams: false,
             addDefaultPage: false,
-            objectsPerTick: 10,
+            objectsPerTick: 5,
+            compress: true
           });
+          
+          console.log('Final file size:', finalBytes.length / 1024 / 1024, 'MB');
           
           const blob = new Blob([finalBytes], { type: 'application/pdf' });
           const fileUrl = URL.createObjectURL(blob);
@@ -146,7 +174,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           document.body.removeChild(link);
           URL.revokeObjectURL(fileUrl);
         } else {
-          const blob = new Blob([compressedPdfBytes], { type: 'application/pdf' });
+          const blob = new Blob([initialCompressedBytes], { type: 'application/pdf' });
           const fileUrl = URL.createObjectURL(blob);
           
           const link = document.createElement('a');
@@ -158,7 +186,10 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           URL.revokeObjectURL(fileUrl);
         }
       } else {
-        const pdfBytes = await pdfDoc.save();
+        const pdfBytes = await pdfDoc.save({
+          useObjectStreams: true,
+          compress: true
+        });
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const fileUrl = URL.createObjectURL(blob);
         
@@ -395,4 +426,3 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     </form>
   );
 };
-
