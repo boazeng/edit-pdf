@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 
 interface PDFFormProps {
   file: File;
@@ -32,6 +32,9 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
+      // שימוש בפונט סטנדרטי במקום Aharoni
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
       console.log('Processing pages...');
       const pages = pdfDoc.getPages();
       const startPageNum = parseInt(formData.startPage) || 1;
@@ -45,7 +48,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop,
           size: 12,
-          font: 'Aharoni',
+          font: font,
         });
 
         const pageText = `-${startPageNum + index}-`;
@@ -53,7 +56,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop - 20,
           size: 10,
-          font: 'Aharoni',
+          font: font,
         });
       });
       
