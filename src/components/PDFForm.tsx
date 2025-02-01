@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 interface PDFFormProps {
   file: File;
@@ -26,8 +27,41 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     setIsProcessing(true);
 
     try {
-      // יצירת URL לקובץ שהועלה
-      const fileUrl = URL.createObjectURL(file);
+      // קריאת הקובץ כ-ArrayBuffer
+      const fileBuffer = await file.arrayBuffer();
+      
+      // יצירת מסמך PDF חדש מהקובץ הקיים
+      const pdfDoc = await PDFDocument.load(fileBuffer);
+      
+      // הוספת הגופן העברי
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      // עיבוד כל העמודים
+      const pages = pdfDoc.getPages();
+      
+      pages.forEach((page) => {
+        const { width, height } = page.getSize();
+        
+        // המרת המרווחים לנקודות (1 ס"מ = ~28.35 נקודות)
+        const marginLeft = parseFloat(formData.marginLeft) * 28.35;
+        const marginBottom = parseFloat(formData.marginBottom) * 28.35;
+        
+        // הוספת הטקסט
+        page.drawText(formData.title, {
+          x: marginLeft,
+          y: marginBottom,
+          size: 12,
+          font,
+          color: rgb(0, 0, 0),
+        });
+      });
+      
+      // שמירת המסמך החדש
+      const modifiedPdfBytes = await pdfDoc.save();
+      
+      // יצירת Blob מהקובץ המעובד
+      const blob = new Blob([modifiedPdfBytes], { type: 'application/pdf' });
+      const fileUrl = URL.createObjectURL(blob);
       
       // יצירת קישור להורדה
       const link = document.createElement('a');
@@ -50,7 +84,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         description: `הקובץ ${downloadFileName} יורד כעת למחשב שלך`,
       });
     } catch (error) {
-      console.error('Error downloading file:', error);
+      console.error('Error processing PDF:', error);
       toast({
         title: "שגיאה בעיבוד הקובץ",
         description: "אנא נסה שנית",
