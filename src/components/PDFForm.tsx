@@ -19,8 +19,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
   const [showTitle, setShowTitle] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
-    marginLeft: "",
-    marginBottom: "",
+    marginLeft: "0.5",
+    marginBottom: "1",
     fileName: "",
     startPage: "1",
     pageNumberMarginLeft: "",
@@ -219,7 +219,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               min="0"
               value={formData.marginLeft}
               onChange={(e) => setFormData({ ...formData, marginLeft: e.target.value })}
-              placeholder="לדוגמה: 2.5"
+              placeholder="לדוגמה: 0.5"
               required
             />
           </div>
@@ -233,7 +233,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               min="0"
               value={formData.marginBottom}
               onChange={(e) => setFormData({ ...formData, marginBottom: e.target.value })}
-              placeholder="לדוגמה: 1.5"
+              placeholder="לדוגמה: 1"
               required
             />
           </div>
