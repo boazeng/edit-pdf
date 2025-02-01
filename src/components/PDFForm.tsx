@@ -5,8 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PDFDocument, rgb } from 'pdf-lib';
-import fontkit from '@pdf-lib/fontkit';
+import { PDFDocument, StandardFonts } from 'pdf-lib';
 
 interface PDFFormProps {
   file: File;
@@ -31,24 +30,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Register fontkit
-      pdfDoc.registerFontkit(fontkit);
-      
-      // Load David font with error handling
-      let fontBytes;
-      try {
-        const fontResponse = await fetch('/fonts/david.ttf');
-        if (!fontResponse.ok) {
-          throw new Error('Failed to load font file');
-        }
-        fontBytes = await fontResponse.arrayBuffer();
-        console.log('Font loaded successfully:', fontBytes.byteLength, 'bytes');
-      } catch (error) {
-        console.error('Error loading font:', error);
-        throw new Error('Failed to load font file');
-      }
-      
-      const customFont = await pdfDoc.embedFont(fontBytes);
+      // Use the default Helvetica font
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       
       const pages = pdfDoc.getPages();
       
@@ -62,8 +45,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: marginLeft,
           y: height - marginTop,
           size: 12,
-          font: customFont,
-          color: rgb(0, 0, 0),
+          font: font,
         });
       });
       
