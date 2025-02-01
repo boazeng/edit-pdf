@@ -25,6 +25,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     startPage: "1",
     pageNumberMarginLeft: "",
     pageNumberMarginTop: "",
+    pageNumberFontSize: "10",
   });
   const [image, setImage] = useState<File | null>(null);
 
@@ -99,11 +100,12 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const pageText = `-${startPageNum + index}-`;
         const pageNumberMarginLeft = parseFloat(formData.pageNumberMarginLeft) * 28.35 || marginLeft;
         const pageNumberMarginTop = parseFloat(formData.pageNumberMarginTop) * 28.35 || marginTop;
+        const pageNumberFontSize = parseInt(formData.pageNumberFontSize) || 10;
         
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: 10,
+          size: pageNumberFontSize,
           font: font,
         });
       });
@@ -263,6 +265,19 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               placeholder="לדוגמה: 1.5"
             />
           </div>
+        </div>
+
+        <div>
+          <Label htmlFor="pageNumberFontSize">גודל פונט מספר העמוד</Label>
+          <Input
+            id="pageNumberFontSize"
+            type="number"
+            min="6"
+            max="72"
+            value={formData.pageNumberFontSize}
+            onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
+            placeholder="לדוגמה: 10"
+          />
         </div>
 
         <div>
