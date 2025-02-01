@@ -23,9 +23,9 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
     marginBottom: "1",
     fileName: "",
     startPage: "1",
-    pageNumberMarginLeft: "",
-    pageNumberMarginTop: "",
-    pageNumberFontSize: "10",
+    pageNumberMarginLeft: "2",
+    pageNumberMarginTop: "1",
+    pageNumberFontSize: "16",
   });
   const [image, setImage] = useState<File | null>(null);
 
@@ -249,7 +249,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               min="0"
               value={formData.pageNumberMarginLeft}
               onChange={(e) => setFormData({ ...formData, pageNumberMarginLeft: e.target.value })}
-              placeholder="לדוגמה: 2.5"
+              placeholder="לדוגמה: 2"
             />
           </div>
           
@@ -262,7 +262,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
               min="0"
               value={formData.pageNumberMarginTop}
               onChange={(e) => setFormData({ ...formData, pageNumberMarginTop: e.target.value })}
-              placeholder="לדוגמה: 1.5"
+              placeholder="לדוגמה: 1"
             />
           </div>
         </div>
@@ -276,7 +276,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
             max="72"
             value={formData.pageNumberFontSize}
             onChange={(e) => setFormData({ ...formData, pageNumberFontSize: e.target.value })}
-            placeholder="לדוגמה: 10"
+            placeholder="לדוגמה: 16"
           />
         </div>
 
