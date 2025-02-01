@@ -15,7 +15,6 @@ interface PDFFormProps {
 }
 
 export const PDFForm = ({ file, onReset }: PDFFormProps) => {
-
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
   const [showTitle, setShowTitle] = useState(false);
@@ -83,7 +82,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
         if (pdfImage) {
-          // הקטנת גודל התמונה ל-10% מהגודל המקורי
           const imgDims = pdfImage.scale(0.1);
           page.drawImage(pdfImage, {
             x: marginLeft,
@@ -97,7 +95,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           page.drawText(formData.title, {
             x: marginLeft,
             y: height - marginTop - (pdfImage ? 50 : 0),
-            size: 8, // הקטנת גודל הפונט עוד יותר
+            size: 8,
             font: font,
           });
         }
@@ -110,12 +108,10 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: Math.min(pageNumberFontSize, 10), // הגבלת גודל הפונט
+          size: Math.min(pageNumberFontSize, 10),
           font: font,
         });
       });
-      
-      console.log('Saving PDF...');
       
       console.log('Saving PDF...');
       
@@ -126,8 +122,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const initialCompressedBytes = await pdfDoc.save({
           useObjectStreams: false,
           addDefaultPage: false,
-          objectsPerTick: 5,
-          compress: true
+          objectsPerTick: 5
         });
         
         console.log('Initial file size:', initialCompressedBytes.length / 1024 / 1024, 'MB');
@@ -137,28 +132,28 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           
           // נסיון שני של דחיסה עם פרמטרים אגרסיביים יותר
           const secondPassDoc = await PDFDocument.load(initialCompressedBytes);
-          
-          // מעבר על כל העמודים ודחיסת תמונות נוספת
           const pages = secondPassDoc.getPages();
+          
+          // יצירת מסמך חדש עם דחיסה
+          const compressedDoc = await PDFDocument.create();
+          
+          // העתקת כל העמודים למסמך החדש
           for (const page of pages) {
             const { width, height } = page.getSize();
-            // דחיסת העמוד על ידי יצירת עמוד חדש בגודל זהה
-            const newPage = secondPassDoc.addPage([width, height]);
-            await newPage.drawPage(page, {
+            const [embeddedPage] = await compressedDoc.embedPages([page]);
+            const newPage = compressedDoc.addPage([width, height]);
+            newPage.drawPage(embeddedPage, {
               x: 0,
               y: 0,
               width: width,
-              height: height,
-              compress: true
+              height: height
             });
-            secondPassDoc.removePage(secondPassDoc.getPageIndex(page));
           }
           
-          const finalBytes = await secondPassDoc.save({
+          const finalBytes = await compressedDoc.save({
             useObjectStreams: false,
             addDefaultPage: false,
-            objectsPerTick: 5,
-            compress: true
+            objectsPerTick: 5
           });
           
           console.log('Final file size:', finalBytes.length / 1024 / 1024, 'MB');
@@ -187,8 +182,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         }
       } else {
         const pdfBytes = await pdfDoc.save({
-          useObjectStreams: true,
-          compress: true
+          useObjectStreams: true
         });
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const fileUrl = URL.createObjectURL(blob);
