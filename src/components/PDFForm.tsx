@@ -66,10 +66,10 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       // Register fontkit
       pdfDoc.registerFontkit(fontkit);
       
-      // Load and embed the David font for Hebrew text
-      const fontResponse = await fetch('/fonts/david.ttf');
+      // Load and embed Arial font for Hebrew text
+      const fontResponse = await fetch('/fonts/arial.ttf');
       const fontBytes = await fontResponse.arrayBuffer();
-      const davidFont = await pdfDoc.embedFont(fontBytes);
+      const arialFont = await pdfDoc.embedFont(fontBytes);
       
       // Use Times Roman for numbers
       const romanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
@@ -103,13 +103,13 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           });
         }
 
-        // Add Hebrew title using David font if enabled
+        // Add Hebrew title using Arial font if enabled
         if (showTitle && formData.title) {
           page.drawText(formData.title, {
             x: marginLeft,
             y: height - marginTop - (pdfImage ? 50 : 0),
             size: 12,
-            font: davidFont,
+            font: arialFont,
           });
         }
 
