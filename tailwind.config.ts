@@ -1,3 +1,4 @@
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -18,7 +19,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        aharoni: ['Aharoni', 'sans-serif'],
+        heebo: ['Heebo', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

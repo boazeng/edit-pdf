@@ -26,9 +26,9 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen p-8 bg-background">
+    <div className="min-h-screen p-8 bg-background font-heebo">
       <div className="max-w-2xl mx-auto space-y-8 animate-fade-up">
-        <h1 className="text-3xl font-bold text-center mb-8">YAEL PDF EDITOR</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">עורך PDF של יעל</h1>
         
         <Card className="p-6">
           {!file ? (
