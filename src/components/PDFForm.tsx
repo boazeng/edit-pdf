@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
@@ -63,8 +63,16 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Use Times Roman for numbers (which it supports)
-      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      // Register fontkit
+      pdfDoc.registerFontkit(fontkit);
+      
+      // Load and embed the David font for Hebrew text
+      const fontResponse = await fetch('/fonts/david.ttf');
+      const fontBytes = await fontResponse.arrayBuffer();
+      const davidFont = await pdfDoc.embedFont(fontBytes);
+      
+      // Use Times Roman for numbers
+      const romanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
       
       console.log('Processing pages...');
       const pages = pdfDoc.getPages();
@@ -95,15 +103,17 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           });
         }
 
-        // For Hebrew title, we'll skip it for now since we need a Hebrew-compatible font
+        // Add Hebrew title using David font if enabled
         if (showTitle && formData.title) {
-          toast({
-            title: "הערה",
-            description: "כרגע לא ניתן להוסיף כותרת בעברית, רק מספרי עמודים",
+          page.drawText(formData.title, {
+            x: marginLeft,
+            y: height - marginTop - (pdfImage ? 50 : 0),
+            size: 12,
+            font: davidFont,
           });
         }
 
-        // Only add page numbers (using English numerals)
+        // Add page numbers using Times Roman font
         const pageText = `-${startPageNum + index}-`;
         const pageNumberMarginLeft = parseFloat(formData.pageNumberMarginLeft) * 28.35 || marginLeft;
         const pageNumberMarginTop = parseFloat(formData.pageNumberMarginTop) * 28.35 || marginTop;
@@ -113,7 +123,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
           size: Math.min(pageNumberFontSize, 12),
-          font: font,
+          font: romanFont,
         });
       });
       
