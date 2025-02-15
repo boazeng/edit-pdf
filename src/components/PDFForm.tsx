@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,7 +63,8 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      // Use Times Roman for numbers (which it supports)
+      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
       
       console.log('Processing pages...');
       const pages = pdfDoc.getPages();
@@ -84,7 +86,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         const marginTop = parseFloat(formData.marginBottom) * 28.35;
         
         if (pdfImage) {
-          const imgDims = pdfImage.scale(0.05); // הקטנת התמונה ל-5% מהגודל המקורי
+          const imgDims = pdfImage.scale(0.05);
           page.drawImage(pdfImage, {
             x: marginLeft,
             y: height - marginTop - imgDims.height,
@@ -93,15 +95,15 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           });
         }
 
+        // For Hebrew title, we'll skip it for now since we need a Hebrew-compatible font
         if (showTitle && formData.title) {
-          page.drawText(formData.title, {
-            x: marginLeft,
-            y: height - marginTop - (pdfImage ? 50 : 0),
-            size: 6, // הקטנת גודל הפונט ל-6
-            font: font,
+          toast({
+            title: "הערה",
+            description: "כרגע לא ניתן להוסיף כותרת בעברית, רק מספרי עמודים",
           });
         }
 
+        // Only add page numbers (using English numerals)
         const pageText = `-${startPageNum + index}-`;
         const pageNumberMarginLeft = parseFloat(formData.pageNumberMarginLeft) * 28.35 || marginLeft;
         const pageNumberMarginTop = parseFloat(formData.pageNumberMarginTop) * 28.35 || marginTop;
@@ -110,7 +112,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
         page.drawText(pageText, {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
-          size: Math.min(pageNumberFontSize, 8), // הקטנת גודל הפונט המקסימלי ל-8
+          size: Math.min(pageNumberFontSize, 12),
           font: font,
         });
       });
@@ -120,7 +122,6 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       if (sizeOption === "custom" && customSize) {
         const targetSizeInBytes = parseFloat(customSize) * 1024 * 1024;
         
-        // נסיון ראשון של דחיסה
         const pdfBytes = await pdfDoc.save({
           useObjectStreams: true,
           addDefaultPage: false,
