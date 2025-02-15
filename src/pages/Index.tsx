@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { PDFUploader } from "@/components/PDFUploader";
@@ -27,7 +28,7 @@ const Index = () => {
   return (
     <div className="min-h-screen p-8 bg-background">
       <div className="max-w-2xl mx-auto space-y-8 animate-fade-up">
-        <h1 className="text-3xl font-bold text-center mb-8">הוספת כותרות ל-PDF</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">YAEL PDF EDITOR</h1>
         
         <Card className="p-6">
           {!file ? (
