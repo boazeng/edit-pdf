@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Download, Folder } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, StandardFonts } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card } from "@/components/ui/card";
@@ -62,8 +63,14 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
       const fileBuffer = await file.arrayBuffer();
       const pdfDoc = await PDFDocument.load(fileBuffer);
       
-      // Use Times Roman for all text
-      const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+      // Register fontkit
+      pdfDoc.registerFontkit(fontkit);
+
+      // Load Helvetica for Hebrew text (it has better Hebrew support)
+      const hebrewFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      
+      // Use Times Roman for numbers
+      const romanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
       
       console.log('Processing pages...');
       const pages = pdfDoc.getPages();
@@ -94,15 +101,21 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           });
         }
 
-        // For now, we'll skip Hebrew title and show a message
+        // Add Hebrew title using the Helvetica font
         if (showTitle && formData.title) {
-          toast({
-            title: "הערה",
-            description: "כרגע יש בעיה עם תמיכה בעברית, נסה שוב מאוחר יותר",
+          // Convert text to be right-to-left
+          const reversedTitle = formData.title.split('').reverse().join('');
+          const titleWidth = hebrewFont.widthOfTextAtSize(reversedTitle, 12);
+          
+          page.drawText(reversedTitle, {
+            x: width - marginLeft - titleWidth, // Right-aligned
+            y: height - marginTop - (pdfImage ? 50 : 0),
+            size: 12,
+            font: hebrewFont,
           });
         }
 
-        // Add page numbers
+        // Add page numbers using Times Roman font
         const pageText = `-${startPageNum + index}-`;
         const pageNumberMarginLeft = parseFloat(formData.pageNumberMarginLeft) * 28.35 || marginLeft;
         const pageNumberMarginTop = parseFloat(formData.pageNumberMarginTop) * 28.35 || marginTop;
@@ -112,7 +125,7 @@ export const PDFForm = ({ file, onReset }: PDFFormProps) => {
           x: pageNumberMarginLeft,
           y: height - pageNumberMarginTop,
           size: Math.min(pageNumberFontSize, 12),
-          font: font,
+          font: romanFont,
         });
       });
       
